@@ -3,7 +3,7 @@ from sklearn import neighbors
 
 
 class Adasyn:
-
+#dopisac dziedziczenie po klasach
     def __init__(self, beta, n_neighbors, random_state=42):
         self.beta = beta
         self.n_neighbors = n_neighbors
