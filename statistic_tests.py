@@ -21,12 +21,10 @@ alpha = 0.05
 significant_advantage_matrix = (p_value_matrix < alpha)
 statistical_advantage_matrix = advantage_matrix * significant_advantage_matrix
 
-print(t_statistic_matrix)
-print(' ')
-print(p_value_matrix)
-print(' ')
-print(advantage_matrix)
-print(' ')
-print(significant_advantage_matrix)
-print(' ')
-print(statistical_advantage_matrix)
+np.savetxt('t_statistic_matrix.csv', t_statistic_matrix, delimiter=',', fmt='%.5f')
+np.savetxt('p_value_matrix.csv', p_value_matrix, delimiter=',', fmt='%.5f')
+np.savetxt('advantage_matrix.csv', advantage_matrix, delimiter=',', fmt='%d')
+np.savetxt('significant_advantage_matrix.csv', significant_advantage_matrix, delimiter=',', fmt='%d')
+np.savetxt('statistical_advantage_matrix.csv', statistical_advantage_matrix, delimiter=',', fmt='%d')
+
+print("Macierze zostały zapisane do plików .csv")
