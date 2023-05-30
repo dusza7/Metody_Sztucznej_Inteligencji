@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import balanced_accuracy_score
 from imblearn.pipeline import Pipeline
@@ -8,7 +9,7 @@ from imblearn.over_sampling import RandomOverSampler
 from lightgbm import LGBMClassifier
 from adasyn import Adasyn
 from imblearn.over_sampling import SMOTE
-from numpy import save
+
 
 Methods = [
     {'our_adasyn': Adasyn(beta=0.9, n_neighbors=3, random_state=42)},
@@ -22,6 +23,12 @@ data = pd.read_csv('wdbc.data', header=None)
 X = data.iloc[:, 2:]
 y = (data.iloc[:, 1] == 'M').astype(int)
 
+# Plotting before oversampling
+plt.figure(figsize=(10, 6))
+plt.scatter(X.iloc[:, 0], X.iloc[:, 1], c=y)
+plt.title('Before Oversampling')
+plt.show()
+
 #Zainicjowanie walidacji krzyżowej
 cross_val = StratifiedKFold(n_splits=5, shuffle=True, random_state=529)
 
@@ -34,7 +41,7 @@ results = np.zeros((num_folds_repeats, num_methods))
 
 for method_idx, method_dict in enumerate(Methods):
     for name, method in method_dict.items():
-    # ADASYN z biblioteki imblearn
+        # ADASYN z biblioteki imblearn
         print(name)
         current_method = method
         classifier = LGBMClassifier(n_estimators=100)
@@ -53,6 +60,20 @@ for method_idx, method_dict in enumerate(Methods):
             pipeline = Pipeline([('method', current_method), ('classifier', classifier)])
             pipeline.fit(X_train, y_train)
 
+            # w celu wygenerowania wykresów
+            sampler = pipeline.named_steps['method']
+            X_resampled, y_resampled = sampler.fit_resample(X_train, y_train)
+
+            # wykresy tylko dla pierwszych foldów
+            if fold == 0:
+                plt.figure(figsize=(10, 6))
+                if name == "our_adasyn":
+                    plt.scatter(X_resampled[:, 0], X_resampled[:, 1], c=y_resampled)
+                else: #numpy array
+                    plt.scatter(X_resampled.iloc[:, 0], X_resampled.iloc[:, 1], c=y_resampled)
+                plt.title(f'After Oversampling with {name}')
+                plt.show()
+
             prediction = pipeline.predict(X_val)
 
             balanced_acc_score = balanced_accuracy_score(y_val, prediction)
@@ -65,4 +86,5 @@ for method_idx, method_dict in enumerate(Methods):
 
         average_score = np.mean(scores)
         print(f'Średnia Zrównoważony wynik dokładności z 5 foldów dla metody ' + name + f': {average_score:0.5f}')
-save('wyniki.npy', results)
+
+np.savetxt('wyniki.csv', results, delimiter=',', fmt='%.5f')
